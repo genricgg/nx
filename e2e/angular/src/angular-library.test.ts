@@ -95,9 +95,7 @@ forEachCli('angular', (cli) => {
 
         // create dependencies by importing
         const createDep = (parent, children: string[]) => {
-          updateFile(
-            `libs/${parent}/src/lib/${parent}.module.ts`,
-            `
+          let moduleContent = `
               import { NgModule } from '@angular/core';
               import { CommonModule } from '@angular/common';
               ${children
@@ -108,15 +106,23 @@ forEachCli('angular', (cli) => {
                     )}Module } from '@proj/${entry}';`
                 )
                 .join('\n')}
+            `;
+
+          if (testConfig === 'publishable') {
+            moduleContent += `
               import { SubModule } from '@proj/${childLib}/sub';
-              
+
               @NgModule({
                 imports: [CommonModule, ${children
                   .map((entry) => `${toClassName(entry)}Module`)
                   .join(',')}, SubModule]
               })
-              export class ${toClassName(parent)}Module {}          
-            `
+              export class ${toClassName(parent)}Module {}`;
+          }
+
+          updateFile(
+            `libs/${parent}/src/lib/${parent}.module.ts`,
+            moduleContent
           );
         };
 
